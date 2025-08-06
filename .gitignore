@@ -1,0 +1,5 @@
+__pycache__/
+*.jar
+*.log
+data/raw/*.json
+data/filtered/*.json
