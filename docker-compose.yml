@@ -58,8 +58,8 @@ services:
       /bin/sh -c "
         sleep 10;
         mc alias set myminio http://minio:9000 minioadmin minioadmin;
-        mc mb myminio/iceberg-warehouse;
-        mc policy set myminio/iceberg-warehouse public" 
+        mc mb myminio/raw myminio/cleaned;
+        mc policy set public myminio/raw myminio/cleaned" 
 
   redis:
     image: redis:7
@@ -140,7 +140,7 @@ services:
       - ./ingest:/opt/airflow/ingest
       - ./data:/opt/airflow/data
     ports:
-      - "8080:8080"
+      - "8686:8080"
     command: webserver
     healthcheck:
       test: ["CMD-SHELL", "[ -f /opt/airflow/airflow-webserver.pid ]"]
@@ -211,6 +211,63 @@ services:
       interval: 30s
       timeout: 30s
       retries: 3
+
+  spark-master:
+    build:
+      context: ./docker/spark
+      dockerfile: Dockerfile
+    container_name: spark-master
+    depends_on:
+      - hive-metastore
+      - minio
+    environment:
+      - SPARK_MODE=master
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_PORT=7077
+      - SPARK_MASTER_WEBUI_PORT=8080
+      - SPARK_LOG_LEVEL=WARN
+      - SPARK_CONF_DIR=/opt/bitnami/spark/conf
+    ports:
+      - "7077:7077"
+      - "8080:8080"
+    volumes:
+      - ./conf/spark/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf   # Cấu hình Spark
+      - ./conf/spark/master/log4j2.properties:/opt/bitnami/spark/conf/log4j2.properties
+      - ./jars/hadoop-aws-3.3.1.jar:/opt/bitnami/spark/jars/hadoop-aws-3.3.1.jar
+      - ./jars/aws-java-sdk-bundle-1.11.1026.jar:/opt/bitnami/spark/jars/aws-java-sdk-bundle-1.11.1026.jar
+      - ./jars/hadoop-client-3.3.1.jar:/opt/bitnami/spark/jars/hadoop-client-3.3.1.jar
+      - ./jars/iceberg-spark-runtime-3.4_2.12-1.5.2.jar:/opt/bitnami/spark/jars/iceberg-spark-runtime-3.4_2.12-1.5.2.jar
+      - ./transform:/opt/transform
+      - ./data:/opt/data
+      - ./logs/spark/master:/opt/bitnami/spark/logs
+
+  spark-worker:
+    build:
+      context: ./docker/spark
+      dockerfile: Dockerfile
+    container_name: spark-worker
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_WEBUI_PORT=8081
+      - SPARK_LOG_LEVEL=WARN
+      - SPARK_CONF_DIR=/opt/bitnami/spark/conf
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2g
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./conf/spark/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf   # Cấu hình Spark
+      - ./conf/spark/worker/log4j2.properties:/opt/bitnami/spark/conf/log4j2.properties
+      - ./jars/hadoop-aws-3.3.1.jar:/opt/bitnami/spark/jars/hadoop-aws-3.3.1.jar
+      - ./jars/aws-java-sdk-bundle-1.11.1026.jar:/opt/bitnami/spark/jars/aws-java-sdk-bundle-1.11.1026.jar
+      - ./jars/hadoop-client-3.3.1.jar:/opt/bitnami/spark/jars/hadoop-client-3.3.1.jar
+      - ./jars/iceberg-spark-runtime-3.4_2.12-1.5.2.jar:/opt/bitnami/spark/jars/iceberg-spark-runtime-3.4_2.12-1.5.2.jar
+      - ./transform:/opt/transform
+      - ./data:/opt/data
+      - ./logs/spark/worker:/opt/bitnami/spark/logs
 
 volumes:
   airflow_postgres_data:

@@ -1,6 +1,6 @@
 from airflow import DAG
-from airflow.operators.bash import BashOperator
-from airflow.operators.dummy import DummyOperator
+from airflow.operators.bash import BashOperator # type: ignore
+from airflow.operators.dummy import DummyOperator # type: ignore
 from datetime import datetime, timedelta
 import pendulum
 
@@ -25,13 +25,9 @@ with DAG(
         task_id="run_crawler",
         bash_command="python3 /opt/airflow/ingest/crawler.py"
     )
-    filter_job = BashOperator(
-        task_id="run_filter",
-        bash_command="python3 /opt/airflow/ingest/filter.py"
-    )
+
     success = DummyOperator(task_id="success")
     fail = DummyOperator(task_id="fail", trigger_rule="one_failed")
 
-    crawl_job >> filter_job
-    filter_job >> success
-    filter_job >> fail
+    crawl_job >> success
+    crawl_job >> fail
