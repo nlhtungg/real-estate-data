@@ -1,4 +1,4 @@
-def merge_with_existing_data(spark, new_df, existing_path="s3a://cleaned/"):
+def merge_with_existing_data(spark, new_df, existing_path="s3a://cleaned/default/example_table/data/"):
     """Merge new data with existing cleaned data, avoiding duplicates"""
     try:
         # Kiểm tra xem có dữ liệu existing không

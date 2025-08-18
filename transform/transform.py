@@ -1,5 +1,6 @@
 from utils.spark_config import create_spark_session
 from utils.data_processor import read_raw_data
+from utils.data_saver import save_to_cleaned_bucket
 
 def main():
     print("Khởi tạo Spark session...")
@@ -11,6 +12,8 @@ def main():
         
         if df is not None:
             print("Đọc dữ liệu thành công!")
+            # Example usage of save_to_cleaned_bucket
+            save_to_cleaned_bucket(df, "example_table", spark)
         else:
             print("Không thể đọc dữ liệu!")
             

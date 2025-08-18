@@ -1,8 +1,11 @@
-from pyspark.sql.functions import col, hash # type: ignore
-from pyspark.sql.types import DoubleType # type: ignore
-from .location_parser import parse_location
-from .area_cleaner import clean_area_column
-from .price_cleaner import clean_price_column
+from pyspark.sql.functions import col, hash, current_date # type: ignore
+from pyspark.sql.types import DoubleType #type: ignore
+from .clean_roadwidth import clean_roadwidth_column # type: ignore
+from .clean_rooms import clean_rooms_column # type: ignore
+from .clean_floors import clean_floors_column # type: ignore
+from .clean_location import parse_location
+from .clean_area import clean_area_column
+from .clean_price import clean_price_column
 
 def transform_data(df):
     """Transform raw data to final output format with URL-based deduplication"""
@@ -12,6 +15,9 @@ def transform_data(df):
             col("url").isNotNull() & 
             (col("url") != "")
         )
+
+        # Thêm cột 'date' với ngày hiện tại
+        clean_df = clean_df.withColumn("date", current_date())
         
         # Parse location thành các cột riêng biệt
         parsed_df = parse_location(clean_df)
@@ -21,10 +27,19 @@ def transform_data(df):
         
         # Clean price column và drop invalid records
         price_cleaned_df = clean_price_column(area_cleaned_df)
-        
+
+        # Clean floor column và drop invalid records
+        floor_cleaned_df = clean_floors_column(price_cleaned_df)
+
+        # Clean rooms column và drop invalid records
+        rooms_cleaned_df = clean_rooms_column(floor_cleaned_df)
+
+        # Clean roadwidth column và drop invalid records
+        roadwidth_cleaned_df = clean_roadwidth_column(rooms_cleaned_df)
+
         # Loại bỏ duplicate URLs, giữ lại record đầu tiên
-        deduplicated_df = price_cleaned_df.dropDuplicates(["url"])
-        
+        deduplicated_df = roadwidth_cleaned_df.dropDuplicates(["url"])
+
         # Tạo ID từ hash của URL và select các cột cần thiết
         transformed_df = deduplicated_df.select(
             hash(col("url")).alias("id"),
@@ -36,10 +51,11 @@ def transform_data(df):
             col("area").cast(DoubleType()),
             col("dimensions"),
             col("direction"),
-            col("floors"),
-            col("rooms"),
-            col("road_width"),
-            col("price_numeric").cast(DoubleType()).alias("price")  # Sử dụng price_numeric thay vì price
+            col("floors_cleaned").alias("floors"),
+            col("rooms_cleaned").alias("rooms"),
+            col("roadwidth_cleaned").alias("road_width"),
+            col("price_numeric").cast(DoubleType()).alias("price"),
+            col("date")
         )
         
         return transformed_df

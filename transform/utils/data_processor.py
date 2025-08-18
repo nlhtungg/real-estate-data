@@ -29,7 +29,7 @@ def read_raw_data(spark):
         
         # Show final result
         print("\nDữ liệu cuối cùng (top 10 records có giá cao nhất):")
-        final_df.orderBy(desc("price")).show(10, truncate=False)
+        final_df.orderBy(desc("price")).show(10, truncate=True)
 
         return final_df
         
