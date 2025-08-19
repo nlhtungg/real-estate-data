@@ -110,7 +110,6 @@ services:
       - ./logs/airflow:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
       - ./ingest:/opt/airflow/ingest
-      - ./data:/opt/airflow/data
     entrypoint: /bin/bash
     command: -c "airflow db init && airflow users create --username admin --password admin --firstname admin --lastname user --role Admin --email admin@example.com"
 
@@ -138,7 +137,7 @@ services:
       - ./logs/airflow:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
       - ./ingest:/opt/airflow/ingest
-      - ./data:/opt/airflow/data
+      - ./transform:/opt/airflow/transform
     ports:
       - "8686:8080"
     command: webserver
@@ -172,7 +171,7 @@ services:
       - ./logs/airflow:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
       - ./ingest:/opt/airflow/ingest
-      - ./data:/opt/airflow/data
+      - ./transform:/opt/airflow/transform
     command: scheduler
     healthcheck:
       test: ["CMD-SHELL", "airflow jobs check --job-type SchedulerJob --local"]
@@ -204,7 +203,8 @@ services:
       - ./logs/airflow:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
       - ./ingest:/opt/airflow/ingest
-      - ./data:/opt/airflow/data
+      - ./transform:/opt/airflow/transform
+      - /var/run/docker.sock:/var/run/docker.sock
     command: celery worker
     healthcheck:
       test: ["CMD-SHELL", "celery --app airflow.executors.celery_executor.app inspect ping -d celery@$HOSTNAME"]
@@ -238,7 +238,6 @@ services:
       - ./jars/hadoop-client-3.3.1.jar:/opt/bitnami/spark/jars/hadoop-client-3.3.1.jar
       - ./jars/iceberg-spark-runtime-3.4_2.12-1.5.2.jar:/opt/bitnami/spark/jars/iceberg-spark-runtime-3.4_2.12-1.5.2.jar
       - ./transform:/opt/transform
-      - ./data:/opt/data
       - ./logs/spark/master:/opt/bitnami/spark/logs
 
   spark-worker:
@@ -266,7 +265,6 @@ services:
       - ./jars/hadoop-client-3.3.1.jar:/opt/bitnami/spark/jars/hadoop-client-3.3.1.jar
       - ./jars/iceberg-spark-runtime-3.4_2.12-1.5.2.jar:/opt/bitnami/spark/jars/iceberg-spark-runtime-3.4_2.12-1.5.2.jar
       - ./transform:/opt/transform
-      - ./data:/opt/data
       - ./logs/spark/worker:/opt/bitnami/spark/logs
 
   trino:
