@@ -269,6 +269,16 @@ services:
       - ./data:/opt/data
       - ./logs/spark/worker:/opt/bitnami/spark/logs
 
+  trino:
+    image: trinodb/trino:414
+    container_name: trino
+    ports:
+      - "9999:8080"
+    volumes:
+      - ./conf/trino/catalog:/etc/trino/catalog
+    depends_on:
+      - hive-metastore
+
 volumes:
   airflow_postgres_data:
   minio_data:

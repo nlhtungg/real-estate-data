@@ -12,7 +12,7 @@ def main():
         
         if df is not None:
             print("Đọc dữ liệu thành công!")
-            # Example usage of save_to_cleaned_bucket
+            # Lưu dữ liệu vào iceberg.default.example_table với bucket cleaned
             save_to_cleaned_bucket(df, "example_table", spark)
         else:
             print("Không thể đọc dữ liệu!")

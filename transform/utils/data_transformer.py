@@ -51,9 +51,9 @@ def transform_data(df):
             col("area").cast(DoubleType()),
             col("dimensions"),
             col("direction"),
-            col("floors_cleaned").alias("floors"),
-            col("rooms_cleaned").alias("rooms"),
-            col("roadwidth_cleaned").alias("road_width"),
+            col("floors"),
+            col("rooms"),
+            col("road_width"),
             col("price_numeric").cast(DoubleType()).alias("price"),
             col("date")
         )
