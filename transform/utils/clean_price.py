@@ -16,40 +16,40 @@ def clean_price_column(df):
         # Xử lý theo đuôi của price
         df_with_clean_price = df_with_number.withColumn(
             "price_numeric",
-            # Case 1: Kết thúc bằng "tỷ" -> nhân 1000
+            # Case 1: Kết thúc bằng "tỷ" -> nhân 1000000000
             when(
                 col("price").endswith("tỷ"),
-                col("price_number_clean").cast(DoubleType()) * 1000
+                col("price_number_clean").cast(DoubleType()) * 1000000000
             )
-            # Case 2: Kết thúc bằng "triệu" (không có /m2) -> giữ nguyên
+            # Case 2: Kết thúc bằng "triệu" (không có /m2) -> nhân 1000000
             .when(
                 col("price").endswith("triệu") & ~col("price").contains("/"),
-                col("price_number_clean").cast(DoubleType())
+                col("price_number_clean").cast(DoubleType()) * 1000000
             )
-            # Case 3: Kết thúc bằng "ngàn" (không có /m2) -> chia 1000
+            # Case 3: Kết thúc bằng "ngàn" (không có /m2) -> nhân 1000
             .when(
                 col("price").endswith("ngàn") & ~col("price").contains("/"),
-                col("price_number_clean").cast(DoubleType()) / 1000
+                col("price_number_clean").cast(DoubleType()) * 1000
             )
-            # Case 4: Chứa "triệu" và "/" và "m2" -> nhân area
+            # Case 4: Chứa "triệu" và "/" và "m2" -> nhân area nhân 1000000
             .when(
                 col("price").contains("triệu") & col("price").contains("/") & col("price").contains("m2"),
-                col("price_number_clean").cast(DoubleType()) * col("area")
+                col("price_number_clean").cast(DoubleType()) * col("area") * 1000000
             )
             # Case 5: Chứa "tỷ" và "/" và "m2" -> logic đặc biệt
             .when(
                 col("price").contains("tỷ") & col("price").contains("/") & col("price").contains("m2"),
                 when(
                     col("price_number_clean").cast(DoubleType()) >= 2,
-                    col("price_number_clean").cast(DoubleType()) * 1000  # Không nhân area nếu >= 2 tỷ
+                    col("price_number_clean").cast(DoubleType()) * 1000000000  # Không nhân area nếu >= 2 tỷ
                 ).otherwise(
-                    col("price_number_clean").cast(DoubleType()) * 1000 * col("area")  # Nhân area nếu < 2 tỷ
+                    col("price_number_clean").cast(DoubleType()) * 1000000000 * col("area")  # Nhân area nếu < 2 tỷ
                 )
             )
-            # Case 6: Chứa "ngàn" và "/" và "m2" -> chia 1000 * area
+            # Case 6: Chứa "ngàn" và "/" và "m2" -> nhân 1000 * area
             .when(
                 col("price").contains("ngàn") & col("price").contains("/") & col("price").contains("m2"),
-                col("price_number_clean").cast(DoubleType()) / 1000 * col("area")
+                col("price_number_clean").cast(DoubleType()) * 1000 * col("area")
             )
             # Default: null
             .otherwise(lit(None))
