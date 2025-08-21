@@ -15,9 +15,6 @@ def transform_data(df):
             col("url").isNotNull() & 
             (col("url") != "")
         )
-
-        # Thêm cột 'date' với ngày hiện tại
-        clean_df = clean_df.withColumn("date", current_date())
         
         # Parse location thành các cột riêng biệt
         parsed_df = parse_location(clean_df)
@@ -55,7 +52,7 @@ def transform_data(df):
             col("rooms"),
             col("road_width"),
             col("price_numeric").cast(DoubleType()).alias("price"),
-            col("date")
+            col("date")  # Giữ nguyên date từ raw data
         )
         
         return transformed_df

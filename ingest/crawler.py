@@ -15,6 +15,8 @@ MINIO_ACCESS_KEY = "minioadmin"
 MINIO_SECRET_KEY = "minioadmin"
 BUCKET_NAME = "raw"
 
+TODAY = datetime.today().strftime("%Y-%m-%d")
+
 def extract_listing(div):
     def safe_select_text(selector, default=""):
         el = div.select_one(selector)
@@ -43,7 +45,8 @@ def extract_listing(div):
         "location": location,
         "floors": floors,
         "rooms": rooms,
-        "road_width": road_width
+        "road_width": road_width,
+        "date": TODAY
     }
 
 def crawl_page(page_num):

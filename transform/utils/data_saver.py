@@ -94,10 +94,11 @@ def save_to_cleaned_bucket(df, table_name="example_table", spark=None):
         # Ép kiểu dữ liệu để khớp với schema
         df_typed = cast_dataframe_to_table_schema(df, table_name, spark)
         
-        # Lưu dữ liệu vào Iceberg table
+        # Lưu dữ liệu vào Iceberg table - thay thế toàn bộ table
+        # với dữ liệu đã merge (bao gồm cả old + new records)
         df_typed.writeTo(f"iceberg.default.{table_name}") \
                 .option("write-audit-publish", "true") \
-                .overwritePartitions()
+                .createOrReplace()
         
         print(f"✓ Đã lưu dữ liệu vào iceberg.default.{table_name}")
             

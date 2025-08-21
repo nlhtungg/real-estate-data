@@ -3,7 +3,7 @@ from .data_transformer import transform_data
 from .data_merger import merge_with_existing_data
 
 def read_raw_data(spark):
-    """Đọc tất cả file parquet từ bucket raw, transform và merge với dữ liệu existing"""
+    """Đọc tất cả file parquet từ bucket raw, transform và merge với dữ liệu existing dựa trên ID"""
     try:
         # Đường dẫn tới bucket raw trong MinIO
         raw_path = "s3a://raw/"
