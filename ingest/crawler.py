@@ -5,6 +5,7 @@ from datetime import datetime
 from minio import Minio
 import tempfile
 import os
+import time
 
 BASE_URL = "https://alonhadat.com.vn/nha-dat/can-ban/nha-dat/1/ha-noi/trang--{}.html"
 HEADERS = {"User-Agent": "Mozilla/5.0"}
@@ -60,6 +61,7 @@ def main():
     all_data = []
     for page in range(1, 100):
         all_data.extend(crawl_page(page))
+        time.sleep(1.5)
 
     date_str = datetime.today().strftime("%Y%m%d")
     filename = f"data-{date_str}.parquet"
